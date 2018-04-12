@@ -5,13 +5,10 @@ import java.util.Optional;
 /**
  * Tracks the nth-highest value in an infinite sequence of values.
  */
-public class NthHighestValue<T extends Comparable> {
+public class NthHighestValue<T extends Comparable<T>> {
 
-  private static final int INDEX_UNDEFINED = -1;
-
-  private final Object[] maxHeap;  
+  private final Object[] minHeap;  
   private int heapSize = 0;
-  private int minValueIndex = INDEX_UNDEFINED;
 
   /**
    * Create a new NthHighestValue instance based on the value of n.
@@ -19,7 +16,7 @@ public class NthHighestValue<T extends Comparable> {
    * @param capacity maximum count of elements stored (the n in nth-highest)
    */
   public NthHighestValue(final int capacity) {
-    this.maxHeap = new Object[capacity];
+    this.minHeap = new Object[capacity];
   }
 
   /** 
@@ -28,7 +25,7 @@ public class NthHighestValue<T extends Comparable> {
    * update method.  Provides this value in constant time.
    */
   public Optional<T> get() {
-    return isHeapFull() ? Optional.of(getMinValue()) : Optional.empty();
+    return isHeapFull() ? Optional.of(getRoot()) : Optional.empty();
   }
 
   /**
@@ -43,47 +40,81 @@ public class NthHighestValue<T extends Comparable> {
    * and logarthmic time (relative to n) in the worst case.
    */
   public void update(final T newValue) {
-    int newValueIndex = INDEX_UNDEFINED; 
-
     if (this.heapSize == 0) {
-      newValueIndex = 0;
-      this.maxHeap[newValueIndex] = newValue;
+      this.minHeap[0] = newValue;
       this.heapSize = 1;
-    } else if (this.heapSize < maxHeap.length) {
-      newValueIndex = heapSize;
-      this.maxHeap[newValueIndex] = newValue;
+    } else if (!isHeapFull()) {
+      final int newValueIndex = this.heapSize;
+      this.minHeap[newValueIndex] = newValue;
       this.heapSize++;
       
       heapifyUp(newValueIndex); 
-    } else if (isGreaterThanNthValue(newValue)) { // heap full
+    } else if (isGreaterThanMinValue(newValue)) { 
+      this.minHeap[0] = newValue;  
       
-       
-    } 
-
-    // if new value put in the heap (added or replaced)
-    if (newValueIndex != INDEX_UNDEFINED) {
-      final T currentMinValue = getMinValue();
-      
-      if (currentMinValue.compareTo(newValue) > 0) {
-        this.minValueIndex = newValueIndex;
-      }
+      heapifyDown(0);
     }
-  }
-  
-  private boolean isHeapFull() {
-    return this.maxHeap.length == this.heapSize;
   }
 
   @SuppressWarnings("unchecked")
-  private T getMinValue() {
-    return (T)this.maxHeap[this.minValueIndex];
+  private T getRoot() {
+    return (T)this.minHeap[0]; 
+  }
+  
+  private boolean isHeapFull() {
+    return this.minHeap.length == this.heapSize;
+  }
+
+  private boolean isGreaterThanMinValue(final T newValue) {
+    return newValue.compareTo(getRoot()) > 0;
   }
 
   private void heapifyUp(final int childIndex) {
-  
+    final int parentIndex = (childIndex - 1) / 2;
+    
+    if (compare(childIndex, parentIndex) < 0) {
+      swap(childIndex, parentIndex);  
+      heapifyUp(parentIndex);       
+    }
   }
 
-  private boolean isGreaterThanNthValue(T obj) {
-    return false; 
+  private void heapifyDown(final int parentIndex) {
+    final int childIndex = getIndexOfSmallestChild(parentIndex);
+
+    if (childIndex == -1) {
+      return;
+    }
+    
+    if (compare(childIndex, parentIndex) < 0) {
+      swap(childIndex, parentIndex);  
+      heapifyDown(childIndex);
+    }
+  }
+
+  private int getIndexOfSmallestChild(final int parentIndex) {
+    final int childIndex1 = 2 * parentIndex + 1;
+    final int childIndex2 = 2 * parentIndex + 2;
+
+    if (childIndex1 >= this.minHeap.length) {
+      return -1;
+    } else if (childIndex2 >= this.minHeap.length) {
+      return childIndex1;
+    } else {
+      return compare(childIndex1, childIndex2) < 0 ? childIndex1 : childIndex2;
+    }   
+  }
+
+  private void swap(final int index1, final int index2) {
+    final Object value1 = this.minHeap[index1];
+    this.minHeap[index1] = this.minHeap[index2];
+    this.minHeap[index2] = value1;
+  }
+
+  @SuppressWarnings("unchecked")
+  private int compare(final int index1, final int index2) {
+    final Comparable value1 = (Comparable)this.minHeap[index1];
+    final Comparable value2 = (Comparable)this.minHeap[index2];
+
+    return value1.compareTo(value2);
   }
 }
