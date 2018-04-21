@@ -3,11 +3,27 @@ package com.github.vermasque;
 import java.util.Optional;
 
 /**
- * Tracks the nth-highest value in an infinite sequence of values.
+ * Tracks the nth-highest value in a potentially infinite sequence of values.
+ *
+ * <p>The nth-highest value of a sequence of values is the same as the lowest
+ * value in the top n values of the sequence.  A min heap is used internally
+ * to track the top n values and then provide the nth-highest value efficiently
+ * by simply asking the min heap for its min value.
+ *
+ * @see <a href="https://en.wikipedia.org/wiki/Binary_heap">How heaps work</a>
  */
 public class NthHighestValue<T extends Comparable<T>> {
 
-  private final Object[] minHeap;  
+  private static final int NO_INDEX = -1;
+
+  /**
+   * Can't create generic arrays so forced to use non-generic type instead of T[].
+   * At runtime, types are checked to prevent the wrong type of value from being
+   * set on the array.  Can't do that with generic arrays likely due to type erasure.
+   *
+   * @see <a href="https://docs.oracle.com/javase/tutorial/java/generics/restrictions.html#createArrays">Restrictions on Generics</a>
+   */
+  private final Comparable[] minHeap;
   private int heapSize = 0;
 
   /**
@@ -16,7 +32,7 @@ public class NthHighestValue<T extends Comparable<T>> {
    * @param capacity maximum count of elements stored (the n in nth-highest)
    */
   public NthHighestValue(final int capacity) {
-    this.minHeap = new Object[capacity];
+    this.minHeap = new Comparable[capacity];
   }
 
   /** 
@@ -25,7 +41,7 @@ public class NthHighestValue<T extends Comparable<T>> {
    * update method.  Provides this value in constant time.
    */
   public Optional<T> get() {
-    return isHeapFull() ? Optional.of(getRoot()) : Optional.empty();
+    return isHeapFull() ? Optional.of(getMinValue()) : Optional.empty();
   }
 
   /**
@@ -37,7 +53,7 @@ public class NthHighestValue<T extends Comparable<T>> {
    * encountered.  
    * 
    * <p>An update operates in constant time in the best case
-   * and logarthmic time (relative to n) in the worst case.
+   * and logarithmic time (relative to n) in the worst case.
    */
   public void update(final T newValue) {
     if (this.heapSize == 0) {
@@ -57,7 +73,7 @@ public class NthHighestValue<T extends Comparable<T>> {
   }
 
   @SuppressWarnings("unchecked")
-  private T getRoot() {
+  private T getMinValue() {
     return (T)this.minHeap[0]; 
   }
   
@@ -66,7 +82,7 @@ public class NthHighestValue<T extends Comparable<T>> {
   }
 
   private boolean isGreaterThanMinValue(final T newValue) {
-    return newValue.compareTo(getRoot()) > 0;
+    return newValue.compareTo(getMinValue()) > 0;
   }
 
   private void heapifyUp(final int childIndex) {
@@ -81,7 +97,7 @@ public class NthHighestValue<T extends Comparable<T>> {
   private void heapifyDown(final int parentIndex) {
     final int childIndex = getIndexOfSmallestChild(parentIndex);
 
-    if (childIndex == -1) {
+    if (childIndex == NO_INDEX) {
       return;
     }
     
@@ -96,7 +112,7 @@ public class NthHighestValue<T extends Comparable<T>> {
     final int childIndex2 = 2 * parentIndex + 2;
 
     if (childIndex1 >= this.minHeap.length) {
-      return -1;
+      return NO_INDEX;
     } else if (childIndex2 >= this.minHeap.length) {
       return childIndex1;
     } else {
@@ -105,15 +121,14 @@ public class NthHighestValue<T extends Comparable<T>> {
   }
 
   private void swap(final int index1, final int index2) {
-    final Object value1 = this.minHeap[index1];
+    final Comparable value1 = this.minHeap[index1];
     this.minHeap[index1] = this.minHeap[index2];
     this.minHeap[index2] = value1;
   }
 
-  @SuppressWarnings("unchecked")
   private int compare(final int index1, final int index2) {
-    final Comparable value1 = (Comparable)this.minHeap[index1];
-    final Comparable value2 = (Comparable)this.minHeap[index2];
+    final Comparable value1 = this.minHeap[index1];
+    final Comparable value2 = this.minHeap[index2];
 
     return value1.compareTo(value2);
   }
