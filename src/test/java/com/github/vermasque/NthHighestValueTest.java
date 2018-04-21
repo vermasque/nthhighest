@@ -23,4 +23,11 @@ public class NthHighestValueTest {
     assertTrue(thirdHighestValue.isPresent());
     assertEquals(4, thirdHighestValue.get().intValue());
   }
+
+  @Test(expected = NullPointerException.class)
+  public void rejectNull() {
+    final var secondHighestValueTracker = new NthHighestValue<Integer>(2);
+
+    secondHighestValueTracker.update(null);
+  }
 }

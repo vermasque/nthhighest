@@ -1,5 +1,6 @@
 package com.github.vermasque;
 
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -51,11 +52,17 @@ public class NthHighestValue<T extends Comparable<T>> {
    * value should fall in the nth-highest values, it 
    * will replace one of the values that have already been
    * encountered.  
+   *
+   * <p>Null values are not supported because the comparison
+   * is odd (null is less than a non-null?).  Also, Comparable
+   * requires an exception to be thrown when comparing to null.
    * 
    * <p>An update operates in constant time in the best case
    * and logarithmic time (relative to n) in the worst case.
    */
   public void update(final T newValue) {
+    Objects.requireNonNull(newValue);
+
     if (this.heapSize == 0) {
       this.minHeap[0] = newValue;
       this.heapSize = 1;
