@@ -1,6 +1,7 @@
 package com.github.vermasque;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -22,6 +23,15 @@ public class NthHighestValueTest {
 
     assertTrue(thirdHighestValue.isPresent());
     assertEquals(4, thirdHighestValue.get().intValue());
+  }
+
+  @Test
+  public void sequenceSmallerThanN() {
+    final var secondHighestValueTracker = new NthHighestValue<Integer>(2);
+
+    secondHighestValueTracker.update(10);
+
+    assertFalse(secondHighestValueTracker.get().isPresent());
   }
 
   @Test(expected = NullPointerException.class)
