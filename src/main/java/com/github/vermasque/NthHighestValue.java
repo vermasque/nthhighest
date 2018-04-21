@@ -30,9 +30,13 @@ public class NthHighestValue<T extends Comparable<T>> {
   /**
    * Create a new NthHighestValue instance based on the value of n.
    *
-   * @param capacity maximum count of elements stored (the n in nth-highest)
+   * @param capacity maximum count of elements stored (the n in nth-highest).  Must be positive.
    */
   public NthHighestValue(final int capacity) {
+    if (capacity < 1) {
+      throw new IllegalArgumentException("Capacity AKA n must be positive");
+    }
+
     this.minHeap = new Comparable[capacity];
   }
 

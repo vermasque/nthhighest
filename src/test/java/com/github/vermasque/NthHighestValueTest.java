@@ -30,4 +30,9 @@ public class NthHighestValueTest {
 
     secondHighestValueTracker.update(null);
   }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void requirePositiveN() {
+    new NthHighestValue(0);
+  }
 }
